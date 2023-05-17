@@ -84,9 +84,15 @@ struct QueryArgs {
     progress_width: Option<i32>,
     progress_color: Option<Cow<'static, str>>,
     suffix: Option<Cow<'static, str>>,
+    // a workaround to handle that quarto adds an image extension to the URL automatically.
+    // In this case, use the url like: https://ip:port/render?progress=39&title=xxx&blackhole=1
+    // By this way, even if the url is modified to something like
+    // https://ip:port/render?progress=39&title=xxx&blackhole=1.png
+    // it will not affect the other TRUE query parameters. 
+    blackhole: Option<String>,
 }
 
-#[get("/")]
+#[get("/render")]
 async fn serve_progress_svg_image(
     args: web::Query<QueryArgs>,
     env: web::Data<Environment<'_>>,
