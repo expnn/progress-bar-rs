@@ -20,6 +20,14 @@ struct Cli {
     /// Sets a custom config file
     #[arg(short='f', long)]
     template_file: Option<PathBuf>,
+
+    #[clap(short, long, value_parser, default_value="127.0.0.1")]
+    /// Bind address.
+    ip: String,
+
+    #[clap(short, long, value_parser=clap::value_parser!(u16).range(1..), default_value_t=5005)]
+    /// The port to listen on.
+    port: u16,
 }
 
 #[actix_web::main]
@@ -50,7 +58,7 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .app_data(data.clone())
             .service(serve_progress_svg_image))
-        .bind(("127.0.0.1", 8080))?
+        .bind((cli.ip, cli.port))?
         .run()
         .await?;
     Ok(())
