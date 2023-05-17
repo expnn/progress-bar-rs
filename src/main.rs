@@ -28,6 +28,10 @@ struct Cli {
     #[clap(short, long, value_parser=clap::value_parser!(u16).range(1..), default_value_t=5005)]
     /// The port to listen on.
     port: u16,
+
+    #[clap(short, long, value_parser=clap::value_parser!(u16).range(1..), default_value_t=1)]
+    /// The port to listen on.
+    workers: u16,
 }
 
 #[actix_web::main]
@@ -53,11 +57,16 @@ async fn main() -> anyhow::Result<()> {
     };
     env.add_filter("int", |x: f32| x as i32);
 
+    info!("{} {} at {}:{}.",
+        cli.workers, if cli.workers > 1 { "workers serve" } else { "worker serves" },
+        cli.ip, cli.port);
+
     let data = web::Data::new(env);
     HttpServer::new(move ||
         App::new()
             .app_data(data.clone())
             .service(serve_progress_svg_image))
+        .workers(cli.workers as usize)
         .bind((cli.ip, cli.port))?
         .run()
         .await?;
